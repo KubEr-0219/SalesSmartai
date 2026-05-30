@@ -3,6 +3,9 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import google.generativeai as genai
 import os
+import json
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 # Load environment variables
 load_dotenv()
@@ -15,6 +18,13 @@ model = genai.GenerativeModel("gemini-2.5-flash")
 
 # Create FastAPI app
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Input schema
 class CompanyInput(BaseModel):
@@ -35,28 +45,70 @@ def home():
 def analyze_company(data: CompanyInput):
 
     prompt = f"""
-    You are an ATS sales intelligence AI.
+You are an ATS Sales Intelligence Agent.
 
-    Analyze this company:
+Analyze the following company:
 
-    Company Name: {data.company_name}
-    Industry: {data.industry}
-    Employee Count: {data.employee_count}
-    Hiring Volume: {data.hiring_volume}
+Company Name: {data.company_name}
+Industry: {data.industry}
+Employee Count: {data.employee_count}
+Hiring Volume: {data.hiring_volume}
 
-    Generate:
+Return ONLY valid JSON.
 
-    1. Top hiring pain points
-    2. Why these problems matter
-    3. ATS features that solve them
-    4. Discovery questions
-    5. Suggested ATS sales pitch
+Use this exact structure:
 
-    Format the response clearly using headings and bullet points.
-    """
+{{
+    "company_summary": "short summary",
+    "top_pain_points": [
+        "pain point 1",
+        "pain point 2",
+        "pain point 3"
+    ],
+    "why_it_matters": [
+        "reason 1",
+        "reason 2",
+        "reason 3"
+    ],
+    "ats_features": [
+        {{
+            "feature": "feature name",
+            "solves": "problem solved"
+        }},
+        {{
+            "feature": "feature name",
+            "solves": "problem solved"
+        }}
+    ],
+    "discovery_questions": [
+        "question 1",
+        "question 2",
+        "question 3"
+    ],
+    "sales_pitch": "short consultative sales pitch"
+}}
 
+Rules:
+1. Return ONLY JSON.
+2. No markdown.
+3. No code blocks.
+4. No explanations outside JSON.
+5. Generate realistic ATS sales insights.
+"""
     response = model.generate_content(prompt)
+    clean_text = response.text.replace("```json", "").replace("```", "").strip()
 
-    return {
-        "result": response.text
-    }
+    try:
+        result = json.loads(clean_text)
+
+        return {
+            "status": "success",
+            "data": result
+        }
+
+    except Exception:
+        return {
+            "status": "error",
+            "raw_response": response.text
+        }
+        
