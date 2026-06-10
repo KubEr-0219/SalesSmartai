@@ -4,7 +4,11 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 import os
 import json
-from fastapi.responses import JSONResponse
+try:
+    from fastapi.responses import JSONResponse
+except Exception:
+    # Fallback to starlette which provides the same response classes
+    from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 # Load environment variables
