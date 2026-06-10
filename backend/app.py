@@ -59,41 +59,39 @@ Return ONLY valid JSON.
 Use this exact structure:
 
 {{
-    "company_summary": "short summary",
-    "top_pain_points": [
-        "pain point 1",
-        "pain point 2",
-        "pain point 3"
-    ],
-    "why_it_matters": [
-        "reason 1",
-        "reason 2",
-        "reason 3"
-    ],
-    "ats_features": [
-        {{
-            "feature": "feature name",
-            "solves": "problem solved"
-        }},
-        {{
-            "feature": "feature name",
-            "solves": "problem solved"
-        }}
-    ],
-    "discovery_questions": [
-        "question 1",
-        "question 2",
-        "question 3"
-    ],
-    "sales_pitch": "short consultative sales pitch"
+  "prospect_score": 87,
+  "ats_fit": "High",
+
+  "company_summary": "",
+
+  "top_pain_points": [],
+
+  "ats_opportunity_map": [
+    {
+      "pain_point": "",
+      "ats_feature": "",
+      "business_impact": ""
+    }
+  ],
+
+  "discovery_questions": [],
+
+  "recommended_talking_points": []
 }}
 
 Rules:
-1. Return ONLY JSON.
+1. Return ONLY valid JSON.
 2. No markdown.
 3. No code blocks.
 4. No explanations outside JSON.
 5. Generate realistic ATS sales insights.
+6. prospect_score must be between 0 and 100.
+7. ats_fit must be one of: Low, Medium, High.
+8. Include 3-5 pain points.
+9. Include 3-5 discovery questions.
+10. Include 3-5 recommended talking points.
+11. For each ATS opportunity, clearly connect:
+    pain point -> ATS feature -> business impact.
 """
     response = model.generate_content(prompt)
     clean_text = response.text.replace("```json", "").replace("```", "").strip()
